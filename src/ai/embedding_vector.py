@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+import numpy as np
+
 from langchain_openai.embeddings.base import OpenAIEmbeddings
 
 class IEmbeddingVector(ABC):
@@ -15,4 +17,4 @@ class EmbeddingVector(IEmbeddingVector):
         )
 
     def create_embedding_vector(self, input_text):
-        return self.embed.embed_query(input_text)
+        return np.array(self.embed.embed_query(input_text))

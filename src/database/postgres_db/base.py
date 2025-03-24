@@ -40,7 +40,6 @@ class PostgresConnector(object):
                     max_overflow=20,
                 )
                 self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
-                from qa_app.models.question_model import QAHistory  # Ensure models are registered
                 Base.metadata.create_all(self.engine)
 
                 # Test the connection
