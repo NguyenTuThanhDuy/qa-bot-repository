@@ -1,0 +1,13 @@
+elasticsearch
+fastapi
+langchain
+langchain-openai
+pgvector
+polars
+psycopg2-binary
+pydantic
+python-dotenv
+qdrant-client
+sqlalchemy
+structlog
+redis

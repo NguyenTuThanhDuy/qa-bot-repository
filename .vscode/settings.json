@@ -1,0 +1,51 @@
+{
+    "editor.rulers": [
+        {
+            "column": 80,
+            "color": "green"
+        },
+        {
+            "column": 100,
+            "color": "#FF0000"
+        },
+        {
+            "column": 120,
+            "color": "orange"
+        }
+    ],
+    "editor.selectionHighlight": true,
+    "python.testing.unittestArgs": [
+        "-v",
+        "-s",
+        "./src",
+        "-p",
+        "test_*.py"
+    ],
+    "python.testing.pytestEnabled": false,
+    "python.testing.unittestEnabled": true,
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.autopep8",
+        "editor.autoIndent": "full",
+        "editor.formatOnSave": false,
+        // "editor.maxTokenizationLineLength": 120,
+        "editor.wordWrap": "wordWrapColumn",
+        "editor.wrappingIndent": "same",
+        "editor.wordWrapColumn": 120,
+        "editor.formatOnPaste": false,
+        "editor.trimAutoWhitespace": true,
+    },
+    "[terraform]": {
+        "editor.defaultFormatter": "hashicorp.terraform",
+        "editor.autoIndent": "full",
+        "editor.formatOnPaste": true,
+        "editor.formatOnSave": true
+    },
+    "[javascript]": {
+        "editor.maxTokenizationLineLength": 100,
+        "editor.formatOnSave": true,
+        "editor.formatOnPaste": true,
+        "editor.autoIndent": "full",
+        "editor.defaultFormatter": "dsznajder.es7-react-js-snippets"
+    },
+    "makefile.configureOnOpen": false
+}

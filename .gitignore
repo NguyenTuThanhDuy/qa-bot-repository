@@ -1,0 +1,8 @@
+.env
+redis-data
+postgres_data
+qdrant_storage
+.venv
+.qodo
+.github
+__pycache__

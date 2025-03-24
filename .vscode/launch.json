@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "API",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/main.py",
+            // "program": "${file}",
+            "console": "integratedTerminal",
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Run API",
+            "configurations": [
+                "API"
+            ]
+        }
+    ]
+}
