@@ -16,3 +16,16 @@ class QAHistory(Base):
     __table_args__ = (
         Index('qa_history_vector_idx', embedded_vector, postgresql_using='ivfflat'),
     )
+
+    @classmethod
+    def prepare_sql_stmt(cls):
+        """
+        <=> - Cosine Distance = 1 - Cosine Similarity (Low distance means they are similar)
+        """
+        return """
+            SELECT qa_id, input_text, 1 - (embedded_vector <=> CAST(:query_vector AS Vector)) AS similarity
+            FROM qa_history
+            WHERE embedded_vector <=> CAST(:query_vector AS Vector) < 0.3
+            ORDER BY similarity
+            LIMIT 5
+        """

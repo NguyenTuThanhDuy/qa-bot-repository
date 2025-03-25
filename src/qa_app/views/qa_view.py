@@ -1,39 +1,50 @@
+from typing import List
+import logging
+
+from pydantic import TypeAdapter
 from fastapi import APIRouter, Depends, HTTPException, Request
-import numpy as np
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from ai.embedding_vector import EmbeddingVector
 from database.db_connector import get_db_session
-from qa_app.validation_models.qa_validation_model import QARequest, VectorResponseModel
+from qa_app.validation_models.qa_validation_model import QARequest, QAResponseModel, QASearchResponseModel
 from qa_app.models.question_model import QAHistory
 
+
+logging.basicConfig(level=logging.ERROR)
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/", response_model=VectorResponseModel, description="Convert text to vector")
+@router.post("/", response_model=QAResponseModel, description="Convert text to vector")
 def api_get_vector_by_text(request: Request, question_request: QARequest, db: Session = Depends(get_db_session)):
-    embed = EmbeddingVector()
-    res = embed.create_embedding_vector(question_request.input_text)
-    record = QAHistory(
-        input_text=question_request.input_text,
-        embedded_vector=res
-    )
-    db.add(record)
-    db.commit()
-    return VectorResponseModel(input_text=question_request.input_text, vector=res)
+    try:
+        embed = EmbeddingVector()
+        res = embed.create_embedding_vector(input_text=question_request.input_text)
+        record = QAHistory(
+            input_text=question_request.input_text,
+            embedded_vector=res
+        )
+        db.add(record)
+        db.commit()
+        db.refresh(record)
+        return QAResponseModel(input_text=question_request.input_text, qa_id=record.qa_id)
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(status_code=403, detail="Error when insert QAHistory record")
 
-@router.post("/search", description="Search similarity sentences")
+
+@router.post("/search", response_model=List[QASearchResponseModel], description="Search similarity sentences")
 def api_get_vector_by_text(request: Request, question_request: QARequest, db: Session = Depends(get_db_session)):
-    embed = EmbeddingVector()
-    query_vector = embed.create_embedding_vector(question_request.input_text)
-    raw_sql = """
-        SELECT input_text
-        FROM qa_history
-        ORDER BY embedded_vector <=> :query_vector
-        LIMIT :k
-    """
-    
-    # Execute the query with parameters
-    result = db.execute(text(raw_sql), {"query_vector": query_vector, "k": 3})
-    return result.fetchall()
+    try:
+        embed = EmbeddingVector()
+        query_vector = embed.create_embedding_vector(input_text=question_request.input_text)
+
+        # ✅ Use query_vector_str (a proper PostgreSQL array format)
+        result = db.execute(text(QAHistory.prepare_sql_stmt()), {"query_vector": query_vector})
+
+        return TypeAdapter(List[QASearchResponseModel]).validate_python(result.mappings().all())
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(status_code=403, detail="Error when searching QAHistory record")
