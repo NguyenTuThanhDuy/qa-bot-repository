@@ -6,3 +6,4 @@ qdrant_storage
 .qodo
 .github
 __pycache__
+log

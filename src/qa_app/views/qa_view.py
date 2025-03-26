@@ -41,7 +41,6 @@ def api_get_vector_by_text(request: Request, question_request: QARequest, db: Se
         embed = EmbeddingVector()
         query_vector = embed.create_embedding_vector(input_text=question_request.input_text)
 
-        # ✅ Use query_vector_str (a proper PostgreSQL array format)
         result = db.execute(text(QAHistory.prepare_sql_stmt()), {"query_vector": query_vector})
 
         return TypeAdapter(List[QASearchResponseModel]).validate_python(result.mappings().all())
