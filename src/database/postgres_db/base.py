@@ -3,15 +3,18 @@ import logging
 from threading import Lock
 
 from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
 from database.config import BaseConfig as Conf
-from database.postgres_db.base_model import Base
 
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+class Base(DeclarativeBase):
+    pass
 
 
 class PostgresConnector(object):

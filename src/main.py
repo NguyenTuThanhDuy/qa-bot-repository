@@ -3,6 +3,7 @@ import time
 import logging
 from typing import List
 from http import HTTPStatus
+from dotenv import load_dotenv
 
 import structlog
 import uvicorn
@@ -15,6 +16,9 @@ from dto.base_dto import ErrorReponse
 from config import BaseConfig as Conf
 from routes import api_router
 from middleware.before_intercepter import BeforeInterceptor
+
+
+load_dotenv()
 
 
 def create_app(app_name: str = Conf.PROJECT_NAME) -> FastAPI:

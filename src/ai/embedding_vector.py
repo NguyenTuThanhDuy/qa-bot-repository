@@ -4,6 +4,7 @@ import logging
 from langchain_openai.embeddings.base import OpenAIEmbeddings
 from openai import OpenAIError
 
+from ai.config import BaseConfig as Conf
 from qa_app.utils.text_processor import preprocess_text_decorator
 
 
@@ -18,9 +19,10 @@ class IEmbeddingVector(ABC):
 
 
 class EmbeddingVector(IEmbeddingVector):
-    def __init__(self, embedding_model: str = "text-embedding-3-small"):
+    def __init__(self):
         self.embed = OpenAIEmbeddings(
-            model=embedding_model
+            api_key=Conf.OPENAI_API_KEY,
+            model=Conf.OPENAI_EMBEDDING_MODEL
         )
 
     @preprocess_text_decorator

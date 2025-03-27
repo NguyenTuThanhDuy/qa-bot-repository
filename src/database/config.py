@@ -1,9 +1,5 @@
 import os
 
-from dotenv import load_dotenv
-
-load_dotenv()
-
 
 class BaseConfig:
     POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
@@ -13,3 +9,8 @@ class BaseConfig:
     POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
     POSTGRES_DB_NAME = os.getenv("POSTGRES_DB")
     POSTGRES_CONNECTION_URL = f"{POSTGRES_CONNECTION_ENGINE}{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB_NAME}"
+
+    QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost")
+    QDRANT_PORT = int(os.getenv("QDRANT_PORT", "6333"))
+    QDRANT_QA_COLLECTION_NAME = os.getenv("QDRANT_QA_COLLECTION_NAME")
+    QDRANT_QA_VECTOR_NAME = os.getenv("QDRANT_QA_VECTOR_NAME")

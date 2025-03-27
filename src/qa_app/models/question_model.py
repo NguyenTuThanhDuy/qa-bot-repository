@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, Text, DateTime, func
 from sqlalchemy.schema import Index
 
 from pgvector.sqlalchemy import Vector  # Use if you're leveraging pgvector for vector search
-from database.postgres_db.base_model import Base
+from database.postgres_db.base import Base
 
 
 class QAHistory(Base):
