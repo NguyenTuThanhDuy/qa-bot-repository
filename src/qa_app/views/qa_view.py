@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from ai.embedding_vector import EmbeddingVector
 from database.db_connector import get_db_session
 from qa_app.validation_models.qa_validation_model import QARequest, QAResponseModel, QASearchResponseModel
-from qa_app.models.question_model import QAHistory
+from database.models import QAHistory
 
 
 logging.basicConfig(level=logging.ERROR)

@@ -22,7 +22,8 @@ class EmbeddingVector(IEmbeddingVector):
     def __init__(self):
         self.embed = OpenAIEmbeddings(
             api_key=Conf.OPENAI_API_KEY,
-            model=Conf.OPENAI_EMBEDDING_MODEL
+            model=Conf.OPENAI_EMBEDDING_MODEL,
+            dimensions=Conf.OPENAI_EMBEDDING_DIMENSIONS,
         )
 
     @preprocess_text_decorator

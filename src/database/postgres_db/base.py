@@ -1,20 +1,16 @@
-import time
 import logging
 from threading import Lock
 
 from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from sqlalchemy.orm import sessionmaker
 
 from database.config import BaseConfig as Conf
+from database.models import Base, QAHistory
 
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-
-class Base(DeclarativeBase):
-    pass
 
 
 class PostgresConnector(object):
@@ -32,31 +28,24 @@ class PostgresConnector(object):
 
     def _initialize(self):
         """ Initialize the database engine and session factory with retry logic """
-        max_retries = 3
-        retry_delay = 2  # Seconds between retries
+        try:
+            self.engine = create_engine(
+                Conf.POSTGRES_CONNECTION_URL,
+                pool_size=10,
+                max_overflow=20,
+            )
+            self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
+            Base.metadata.create_all(self.engine)
 
-        for attempt in range(1, max_retries + 1):
-            try:
-                self.engine = create_engine(
-                    Conf.POSTGRES_CONNECTION_URL,
-                    pool_size=10,
-                    max_overflow=20,
-                )
-                self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
-                Base.metadata.create_all(self.engine)
+            # Test the connection
+            with self.engine.connect() as connection:
+                connection.execute(text("SELECT 1"))
 
-                # Test the connection
-                with self.engine.connect() as connection:
-                    connection.execute(text("SELECT 1"))
-
-                logger.info("PostgreSQL connection established successfully.")
-                return
-            except Exception as e:
-                logger.error(f"Error connecting to PostgreSQL (Attempt {attempt}/{max_retries}): {e}")
-                if attempt < max_retries:
-                    time.sleep(retry_delay)
-                else:
-                    raise Exception("Failed to connect to PostgreSQL after multiple retries.")
+            logger.info("PostgreSQL connection established successfully.")
+            return
+        except Exception as e:
+            logger.error(f"Error connecting to PostgreSQL: {e}")
+            raise Exception("Failed to connect to PostgreSQL after multiple retries.")
 
     def get_db(self):
         """ FastAPI Dependency Injection: Provides a new session """
