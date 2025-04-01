@@ -54,6 +54,14 @@ product_supplier_association = Table(
 )
 
 
+category_product_association = Table(
+    "category_product",
+    Base.metadata,
+    Column("category_id", Integer, ForeignKey("category.category_id", ondelete="CASCADE"), primary_key=True),
+    Column("product_id", Integer, ForeignKey("product.product_id", ondelete="CASCADE"), primary_key=True),
+)
+
+
 class Product(Base):
     __tablename__ = "product"
 
@@ -98,5 +106,26 @@ class Supplier(Base):
             postgresql_using="hnsw",
             postgresql_with={"m": 32, "ef_construction": 100},
             postgresql_ops={"supplier_description_vector": "vector_cosine_ops"}
+        ),
+    )
+
+
+class Category(Base):
+    __tablename__ = "category"
+
+    category_id: Mapped[int] = mapped_column(Integer, name="category_id", primary_key=True, autoincrement=True)
+    category_name: Mapped[str] = mapped_column(Text, name="category_name", unique=True)
+    category_description: Mapped[str] = mapped_column(Text, name="product_description")
+    category_description_vector: Mapped[List[float]] = mapped_column(Vector(N_DIM))
+    created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now())
+    updated_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now(), server_onupdate=func.now())
+
+    __table_args__ = (
+        Index(
+            "category_category_description_vector_idx",
+            category_description_vector,
+            postgresql_using="hnsw",
+            postgresql_with={"m": 32, "ef_construction": 100},
+            postgresql_ops={"category_description_vector": "vector_cosine_ops"}
         ),
     )
