@@ -1,8 +1,9 @@
 from typing import List
 
-from sqlalchemy import Integer, Text, DateTime, func, Table, ForeignKey, Column
+from sqlalchemy import Integer, Text, DateTime, func, Table, ForeignKey, Column, text
 from sqlalchemy.orm import mapped_column, Mapped, DeclarativeBase, relationship
 from sqlalchemy.schema import Index
+from sqlalchemy.sql.expression import literal, cast
 from pgvector.sqlalchemy import Vector  # Use if you're leveraging pgvector for vector search
 
 
@@ -30,6 +31,11 @@ class QAHistory(Base):
             postgresql_with={"m": 32, "ef_construction": 100},
             postgresql_ops={"embedded_vector": "vector_cosine_ops"}
         ),
+        Index(
+            "qa_history_input_text_gin_idx",
+            text("to_tsvector('simple', input_text)"),
+            postgresql_using="gin"
+        ),
     )
 
     @classmethod
@@ -38,11 +44,17 @@ class QAHistory(Base):
         <=> - Cosine Distance = 1 - Cosine Similarity (Low distance means they are similar)
         """
         return """
-            SELECT qa_id, input_text, 1 - (embedded_vector <=> CAST(:query_vector AS Vector)) AS similarity
-            FROM qa_history
-            WHERE embedded_vector <=> CAST(:query_vector AS Vector) < 0.4
-            ORDER BY similarity
-            LIMIT 5
+            SELECT 
+                qa_id,
+                input_text, 1 - (embedded_vector <=> CAST(:query_vector AS Vector)) AS similarity
+            FROM
+                qa_history
+            WHERE
+                embedded_vector <=> CAST(:query_vector AS Vector) < :cosine_distance OR
+                to_tsvector('simple', input_text) @@ plainto_tsquery(:text_query)
+            ORDER BY 
+                similarity DESC
+            LIMIT :limit
         """
 
 
@@ -54,12 +66,28 @@ product_supplier_association = Table(
 )
 
 
-category_product_association = Table(
-    "category_product",
+collection_product_association = Table(
+    "collection_product",
     Base.metadata,
-    Column("category_id", Integer, ForeignKey("category.category_id", ondelete="CASCADE"), primary_key=True),
+    Column("collection_id", Integer, ForeignKey("collection.collection_id", ondelete="CASCADE"), primary_key=True),
     Column("product_id", Integer, ForeignKey("product.product_id", ondelete="CASCADE"), primary_key=True),
 )
+
+
+class Collection(Base):
+    __tablename__ = "collection"
+
+    collection_id: Mapped[int] = mapped_column(Integer, name="collection_id", primary_key=True, autoincrement=True)
+    collection_name: Mapped[str] = mapped_column(Text, name="collection_name", unique=True)
+    collection_description: Mapped[str] = mapped_column(Text, name="collection_description")
+    created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now())
+    updated_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now(), server_onupdate=func.now())
+
+    products: Mapped[List["Product"]] = relationship(
+        "Product",
+        secondary=collection_product_association,
+        back_populates="collections"
+    )
 
 
 class Product(Base):
@@ -75,6 +103,13 @@ class Product(Base):
     suppliers: Mapped[List["Supplier"]] = relationship(
         "Supplier",
         secondary=product_supplier_association,
+        back_populates="products",
+        cascade="all, delete"
+    )
+
+    collections: Mapped[List["Collection"]] = relationship(
+        "Collection",
+        secondary=collection_product_association,
         back_populates="products",
         cascade="all, delete"
     )
@@ -95,37 +130,11 @@ class Supplier(Base):
     supplier_id: Mapped[int] = mapped_column(Integer, name="supplier_id", primary_key=True, autoincrement=True)
     supplier_name: Mapped[str] = mapped_column(Text, name="supplier_name", unique=True)
     supplier_description: Mapped[str] = mapped_column(Text, name="product_description")
-    supplier_description_vector: Mapped[List[float]] = mapped_column(Vector(N_DIM))
     created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now(), server_onupdate=func.now())
 
-    __table_args__ = (
-        Index(
-            "supplier_supplier_description_vector_idx",
-            supplier_description_vector,
-            postgresql_using="hnsw",
-            postgresql_with={"m": 32, "ef_construction": 100},
-            postgresql_ops={"supplier_description_vector": "vector_cosine_ops"}
-        ),
-    )
-
-
-class Category(Base):
-    __tablename__ = "category"
-
-    category_id: Mapped[int] = mapped_column(Integer, name="category_id", primary_key=True, autoincrement=True)
-    category_name: Mapped[str] = mapped_column(Text, name="category_name", unique=True)
-    category_description: Mapped[str] = mapped_column(Text, name="product_description")
-    category_description_vector: Mapped[List[float]] = mapped_column(Vector(N_DIM))
-    created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now())
-    updated_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now(), server_onupdate=func.now())
-
-    __table_args__ = (
-        Index(
-            "category_category_description_vector_idx",
-            category_description_vector,
-            postgresql_using="hnsw",
-            postgresql_with={"m": 32, "ef_construction": 100},
-            postgresql_ops={"category_description_vector": "vector_cosine_ops"}
-        ),
+    products: Mapped[List["Product"]] = relationship(
+        "Product",
+        secondary=product_supplier_association,
+        back_populates="suppliers"
     )

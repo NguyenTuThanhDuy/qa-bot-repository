@@ -41,7 +41,7 @@ def api_get_vector_by_text(request: Request, question_request: QARequest, db: Se
         embed = EmbeddingVector()
         query_vector = embed.create_embedding_vector(input_text=question_request.input_text)
 
-        result = db.execute(text(QAHistory.prepare_sql_stmt()), {"query_vector": query_vector})
+        result = db.execute(text(QAHistory.prepare_sql_stmt()), {"query_vector": query_vector, "cosine_distance": 0.4, "limit": 5, "text_query": question_request.input_text})
 
         return TypeAdapter(List[QASearchResponseModel]).validate_python(result.mappings().all())
     except Exception as e:
