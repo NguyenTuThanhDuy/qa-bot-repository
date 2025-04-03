@@ -74,6 +74,23 @@ collection_product_association = Table(
 )
 
 
+class Brand(Base):
+    __tablename__ = "brand"
+
+    brand_id: Mapped[int] = mapped_column(Integer, name="brand_id", primary_key=True, autoincrement=True)
+    brand_name: Mapped[str] = mapped_column(Text, name="brand_name", unique=True, nullable=False)
+    brand_description: Mapped[str] = mapped_column(Text, name="brand_description")
+    created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now())
+    updated_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now(), server_onupdate=func.now())
+
+    # One-to-Many Relationship (Brand → Products)
+    products: Mapped[List["Product"]] = relationship(
+        "Product",
+        back_populates="brand",
+        cascade="all, delete"
+    )
+
+
 class Collection(Base):
     __tablename__ = "collection"
 
@@ -113,6 +130,9 @@ class Product(Base):
         back_populates="products",
         cascade="all, delete"
     )
+
+    brand_id: Mapped[int] = mapped_column(Integer, ForeignKey("brand.brand_id", ondelete="CASCADE"), nullable=False)
+    brand: Mapped["Brand"] = relationship("Brand", back_populates="products")
 
     __table_args__ = (
         Index(
