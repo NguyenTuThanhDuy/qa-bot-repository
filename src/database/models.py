@@ -1,6 +1,6 @@
 from typing import List
 
-from sqlalchemy import Integer, Text, DateTime, func, Table, ForeignKey, Column, text
+from sqlalchemy import Integer, Text, DateTime, func, Table, ForeignKey, Column, text, Boolean
 from sqlalchemy.orm import mapped_column, Mapped, DeclarativeBase, relationship
 from sqlalchemy.schema import Index
 from sqlalchemy.sql.expression import literal, cast
@@ -80,6 +80,7 @@ class Brand(Base):
     brand_id: Mapped[int] = mapped_column(Integer, name="brand_id", primary_key=True, autoincrement=True)
     brand_name: Mapped[str] = mapped_column(Text, name="brand_name", unique=True, nullable=False)
     brand_description: Mapped[str] = mapped_column(Text, name="brand_description")
+    is_active: Mapped[bool] = mapped_column(Boolean, name="is_active", default=True)
     created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now(), server_onupdate=func.now())
 
@@ -97,6 +98,7 @@ class Collection(Base):
     collection_id: Mapped[int] = mapped_column(Integer, name="collection_id", primary_key=True, autoincrement=True)
     collection_name: Mapped[str] = mapped_column(Text, name="collection_name", unique=True)
     collection_description: Mapped[str] = mapped_column(Text, name="collection_description")
+    is_active: Mapped[bool] = mapped_column(Boolean, name="is_active", default=True)
     created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now(), server_onupdate=func.now())
 
@@ -114,6 +116,7 @@ class Product(Base):
     product_name: Mapped[str] = mapped_column(Text, name="product_name", unique=True)
     product_description: Mapped[str] = mapped_column(Text, name="product_description")
     product_description_vector: Mapped[List[float]] = mapped_column(Vector(N_DIM))
+    is_active: Mapped[bool] = mapped_column(Boolean, name="is_active", default=True)
     created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now(), server_onupdate=func.now())
 
@@ -150,6 +153,7 @@ class Supplier(Base):
     supplier_id: Mapped[int] = mapped_column(Integer, name="supplier_id", primary_key=True, autoincrement=True)
     supplier_name: Mapped[str] = mapped_column(Text, name="supplier_name", unique=True)
     supplier_description: Mapped[str] = mapped_column(Text, name="product_description")
+    is_active: Mapped[bool] = mapped_column(Boolean, name="is_active", default=True)
     created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now(), server_onupdate=func.now())
 
